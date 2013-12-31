@@ -1,0 +1,72 @@
+--- ../bash-4.2-patched/lib/readline/isearch.c	2010-09-07 00:06:39.000000000 +0100
++++ lib/readline/isearch.c	2013-12-31 16:57:28.050714275 +0000
+@@ -319,7 +319,7 @@
+   return c;
+ }
+ 
+-/* Process just-read character C according to isearch context CXT.  Return
++/* Process just-read character c according to isearch context cxt.  Return
+    -1 if the caller should just free the context and return, 0 if we should
+    break out of the loop, and 1 if we should continue to read characters. */
+ int
+@@ -421,7 +421,6 @@
+ 	rl_execute_next (cxt->lastc);
+ 	return (0);
+       }
+-
+   /* Now dispatch on the character.  `Opcodes' affect the search string or
+      state.  Other characters are added to the string.  */
+   switch (cxt->lastc)
+@@ -460,14 +459,11 @@
+ 
+     /* delete character from search string. */
+     case -3:	/* C-H, DEL */
+-      /* This is tricky.  To do this right, we need to keep a
+-	 stack of search positions for the current search, with
+-	 sentinels marking the beginning and end.  But this will
+-	 do until we have a real isearch-undo. */
+-      if (cxt->search_string_index == 0)
+-	rl_ding ();
+-      else
+-	cxt->search_string[--cxt->search_string_index] = '\0';
++      /* To do this right, we would need to keep a stack
++	 of search positions for the current search, with
++	 sentinels marking the beginning and end.
++	 This will do until we have a real isearch-undo. */
++      _rl_isearch_remove_last_char(cxt);
+       break;
+ 
+     case -4:	/* C-G, abort */
+@@ -603,9 +599,13 @@
+ 
+   if (cxt->sflags & SF_FAILED)
+     {
+-      /* We cannot find the search string.  Ding the bell. */
++      /* We haven't found the search string.  Ding the bell. */
+       rl_ding ();
+       cxt->history_pos = cxt->last_found_line;
++      /* If the char is displayable, remove it so search_string stays
++         in step with the displayed search characters */
++      if (cxt->lastc > 0)
++        _rl_isearch_remove_last_char (cxt);
+       return 1;
+     }
+ 
+@@ -624,6 +624,17 @@
+   return 1;
+ }
+ 
++/* Remove the last character from search_string */
++int
++_rl_isearch_remove_last_char (cxt)
++     _rl_search_cxt *cxt;
++{
++  if (cxt->search_string_index == 0)
++    rl_ding ();
++  else
++    cxt->search_string[--cxt->search_string_index] = '\0';
++}
++
+ static int
+ _rl_isearch_cleanup (cxt, r)
+      _rl_search_cxt *cxt;
