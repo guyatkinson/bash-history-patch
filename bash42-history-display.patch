@@ -1,3 +1,21 @@
+                             BASH PATCH REPORT
+                             =================
+
+Bash-Release:   4.2
+Patch-ID:       bash42-history-display.patch
+
+Bug-Description:
+
+When using readline isearch, any characters typed which extend the 
+search string so that it doesn't match anything in history (in the
+current direction), lead to the extra characters being appended invisibly
+to the search string buffer ctx->search_string, without being displayed.
+The user, even if (s)he becomes aware of what is occurring, then needs to
+press backspace the correct number of times to remove the invisible
+characters, before normal service resumes.
+
+Patch (apply with 'patch -p0'):
+
 --- ../bash-4.2-patched/lib/readline/isearch.c	2010-09-07 00:06:39.000000000 +0100
 +++ lib/readline/isearch.c	2013-12-31 16:57:28.050714275 +0000
 @@ -319,7 +319,7 @@
